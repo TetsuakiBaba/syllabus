@@ -4,7 +4,7 @@
 OUTPUT_FILE="tree_output.md"
 
 # ベースURL（GitHubリポジトリのURL。適宜変更）
-BASE_URL="https://github.com/TetsuakiBaba/syllabus/main"
+BASE_URL="https://github.com/TetsuakiBaba/syllabus/blob/main"
 
 # 出力ファイルを初期化
 echo "" > "$OUTPUT_FILE"
