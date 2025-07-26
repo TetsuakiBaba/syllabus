@@ -19,23 +19,41 @@ NEXT_YEAR=$((CURRENT_YEAR + 1))
 # 出力ファイルを初期化
 echo "" > "$OUTPUT_FILE"
 
+# Unicode正規化関数（NFC形式）
+normalize_nfc() {
+    local input="$1"
+    # macOSの場合、uconvまたはiconvを使用してNFC正規化
+    if command -v uconv >/dev/null 2>&1; then
+        echo "$input" | uconv -x nfc
+    elif python3 -c "import unicodedata" 2>/dev/null; then
+        echo "$input" | python3 -c "import sys, unicodedata; print(unicodedata.normalize('NFC', sys.stdin.read().strip()))"
+    else
+        # フォールバック：そのまま返す
+        echo "$input"
+    fi
+}
+
 # 年度順にファイルを表示する関数
 output_files_by_year() {
     local year=$1
     local pattern="*/${year}.md"
     find . -path "$pattern" -type f | LC_ALL=C sort | while IFS= read -r file; do
         RELATIVE_PATH="${file#./}" # "./"を取り除く
+        # NFC形式に正規化
+        NORMALIZED_PATH=$(normalize_nfc "$RELATIVE_PATH")
         # URLエンコードが必要な場合はここで処理
-        ENCODED_PATH=$(printf '%s\n' "$RELATIVE_PATH" | sed 's/ /%20/g')
-        echo "- [${RELATIVE_PATH}](${BASE_URL}/${ENCODED_PATH})" >> "$OUTPUT_FILE"
+        ENCODED_PATH=$(printf '%s\n' "$NORMALIZED_PATH" | sed 's/ /%20/g')
+        echo "- [${NORMALIZED_PATH}](${BASE_URL}/${ENCODED_PATH})" >> "$OUTPUT_FILE"
     done
     
     pattern="*/${year}.txt"
     find . -path "$pattern" -type f | LC_ALL=C sort | while IFS= read -r file; do
         RELATIVE_PATH="${file#./}" # "./"を取り除く
+        # NFC形式に正規化
+        NORMALIZED_PATH=$(normalize_nfc "$RELATIVE_PATH")
         # URLエンコードが必要な場合はここで処理
-        ENCODED_PATH=$(printf '%s\n' "$RELATIVE_PATH" | sed 's/ /%20/g')
-        echo "- [${RELATIVE_PATH}](${BASE_URL}/${ENCODED_PATH})" >> "$OUTPUT_FILE"
+        ENCODED_PATH=$(printf '%s\n' "$NORMALIZED_PATH" | sed 's/ /%20/g')
+        echo "- [${NORMALIZED_PATH}](${BASE_URL}/${ENCODED_PATH})" >> "$OUTPUT_FILE"
     done
 }
 
@@ -54,9 +72,11 @@ tree -fi -I "README.md" -I "make_index.sh" -I "tree_output.md" -I "index.html" .
         RELATIVE_PATH="${line#./}"
         # 年度パターン（4桁数字.md または 4桁数字.txt）でないファイルのみ表示
         if [[ ! "$RELATIVE_PATH" =~ [0-9]{4}\.(md|txt)$ ]]; then
+            # NFC形式に正規化
+            NORMALIZED_PATH=$(normalize_nfc "$RELATIVE_PATH")
             # URLエンコードが必要な場合はここで処理
-            ENCODED_PATH=$(printf '%s\n' "$RELATIVE_PATH" | sed 's/ /%20/g')
-            echo "- [${RELATIVE_PATH}](${BASE_URL}/${ENCODED_PATH})" >> "$OUTPUT_FILE"
+            ENCODED_PATH=$(printf '%s\n' "$NORMALIZED_PATH" | sed 's/ /%20/g')
+            echo "- [${NORMALIZED_PATH}](${BASE_URL}/${ENCODED_PATH})" >> "$OUTPUT_FILE"
         fi
     fi
 done
