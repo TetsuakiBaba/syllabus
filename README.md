@@ -1,7 +1,8 @@
 # syllabus
-# author: Tetsuaki Baba
-# date: 2025年7月26日
-# institution: Tokyo Metropolitan University
+author: Tetsuaki Baba
+date: 2025年7月26日
+institution: Tokyo Metropolitan University
+
 このページは私の大学等でのシラバスをまとめるためのリポジトリです。授業シラバスに関する要望や質問があれば、Issueを立ててください。
 
 ## シラバス一覧
